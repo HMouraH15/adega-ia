@@ -6,8 +6,10 @@ import { validarAmbiente } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { CategoriasModule } from './modules/categorias/categorias';
+import { ComprasModule } from './modules/compras/compras.module';
 import { FornecedoresModule } from './modules/fornecedores/fornecedores';
 import { ProdutosModule } from './modules/produtos/produtos.module';
+import { VendasModule } from './modules/vendas/vendas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 
@@ -25,6 +27,8 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
     CategoriasModule,
     ProdutosModule,
     FornecedoresModule,
+    ComprasModule,
+    VendasModule,
   ],
   providers: [
     // Ordem importa: primeiro autentica (JWT), depois checa o perfil
