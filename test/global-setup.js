@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
-const TABELAS = ['VendaItem', 'Venda', 'CompraItem', 'Compra', 'Produto', 'Fornecedor', 'Categoria', 'Usuario'];
+const TABELAS = ['Mensagem', 'Conversa', 'VendaItem', 'Venda', 'CompraItem', 'Compra', 'Produto', 'Fornecedor', 'Categoria', 'Usuario'];
 
 module.exports = async () => {
   const raiz = path.resolve(__dirname, '..');
@@ -28,7 +28,13 @@ module.exports = async () => {
   // Variáveis herdadas pelos workers do Jest (e lidas pelo ConfigModule antes do .env)
   process.env.DATABASE_URL = url.toString();
   process.env.JWT_SECRET = process.env.JWT_SECRET || randomBytes(32).toString('hex');
-  process.env.ASSISTENTE_HABILITADO = 'false';
+  // Assistente ligado, mas SEM chaves reais: os testes injetam um provedor falso
+  // e nenhuma requisição sai para o Gemini/Anthropic.
+  process.env.ASSISTENTE_HABILITADO = 'true';
+  process.env.GEMINI_API_KEY = '';
+  process.env.ANTHROPIC_API_KEY = '';
+  process.env.ASSISTENTE_RATE_LIMIT = '5';
+  process.env.ASSISTENTE_RATE_TTL_MS = '60000';
   process.env.SEED_ADMIN_EMAIL = 'admin.e2e@adega.local';
   process.env.SEED_ADMIN_SENHA = randomBytes(12).toString('base64url');
   process.env.E2E_ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL;

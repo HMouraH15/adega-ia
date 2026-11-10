@@ -27,6 +27,7 @@ model Usuario {
   compras          Compra[]
   vendas           Venda[]    @relation("VendasRegistradas")
   vendasCanceladas Venda[]    @relation("VendasCanceladas")
+  conversas        Conversa[]
 }
 
 model Categoria {
@@ -117,3 +118,45 @@ model VendaItem {
   custoUnitario Decimal @db.Decimal(12, 4)
 }
 
+/// Conversa do assistente de IA; pertence a um usuário
+model Conversa {
+  id                 String     @id @default(uuid())
+  usuarioId          String
+  usuario            Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  titulo             String
+  /// gemini | anthropic — uma conversa sempre continua no mesmo provedor
+  provedor           String
+  modelo             String
+  tokensEntrada      Int        @default(0)
+  tokensSaida        Int        @default(0)
+  tokensCacheLeitura Int        @default(0)
+  tokensCacheEscrita Int        @default(0)
+  chamadasModelo     Int        @default(0)
+  /// Tokens de entrada da última chamada (tamanho atual do contexto)
+  tamanhoContexto    Int        @default(0)
+  criadoEm           DateTime   @default(now())
+  atualizadoEm       DateTime   @updatedAt
+  mensagens          Mensagem[]
+
+  @@index([usuarioId, atualizadoEm])
+}
+
+/// Mensagem trocada com o modelo de IA (user/assistant)
+model Mensagem {
+  id         String   @id @default(uuid())
+  conversaId String
+  conversa   Conversa @relation(fields: [conversaId], references: [id], onDelete: Cascade)
+  ordem      Int
+  papel      String
+  /// Blocos neutros (texto, chamada, resultado) — independentes do provedor
+  conteudo   Json
+  /// Conteúdo original do provedor (thought signatures do Gemini / blocos do Claude), reenviado sem alteração
+  nativo     Json?
+  /// Ações sugeridas pela IA, aguardando confirmação do usuário
+  acoes      Json?
+  /// Uso de tokens da chamada que gerou esta mensagem (somente assistant)
+  uso        Json?
+  criadoEm   DateTime @default(now())
+
+  @@unique([conversaId, ordem])
+}

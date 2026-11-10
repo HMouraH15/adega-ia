@@ -55,6 +55,25 @@ export class ProdutosService {
     });
   }
 
+  /** Busca por nome e/ou nome da categoria (somente leitura; usada também pelo assistente). */
+  pesquisar(termo: string | null, categoria: string | null, limite: number) {
+    return this.prisma.produto.findMany({
+      where: {
+        ativo: true,
+        nome: termo ? { contains: termo, mode: 'insensitive' } : undefined,
+        categoria: categoria ? { nome: { contains: categoria, mode: 'insensitive' } } : undefined,
+      },
+      include: comCategoria,
+      orderBy: { nome: 'asc' },
+      take: limite,
+    });
+  }
+
+  /** Leitura de vários produtos por id (somente leitura). */
+  buscarVarios(ids: string[]) {
+    return this.prisma.produto.findMany({ where: { id: { in: ids } }, include: comCategoria });
+  }
+
   async sugestaoPreco(id: string, margemDesejada: number) {
     const p = await this.buscar(id);
     const s = sugerirPreco(p.precoCusto, margemDesejada);
