@@ -9,6 +9,7 @@ import { CategoriasModule } from './modules/categorias/categorias';
 import { ComprasModule } from './modules/compras/compras.module';
 import { FornecedoresModule } from './modules/fornecedores/fornecedores';
 import { ProdutosModule } from './modules/produtos/produtos.module';
+import { RelatoriosModule } from './modules/relatorios/relatorios.module';
 import { VendasModule } from './modules/vendas/vendas.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
@@ -29,6 +30,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
     FornecedoresModule,
     ComprasModule,
     VendasModule,
+    RelatoriosModule,
   ],
   providers: [
     // Ordem importa: primeiro autentica (JWT), depois checa o perfil

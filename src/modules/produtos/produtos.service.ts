@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { margemPercentual } from '../../domain/lucro.rules';
+import { sugerirPreco } from '../../domain/preco.rules';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AtualizarProdutoDto, CriarProdutoDto, FiltroProdutosDto } from './dto/produto.dto';
 
@@ -51,5 +53,20 @@ export class ProdutosService {
       orderBy: [{ estoqueAtual: 'asc' }, { nome: 'asc' }],
       take: limite,
     });
+  }
+
+  async sugestaoPreco(id: string, margemDesejada: number) {
+    const p = await this.buscar(id);
+    const s = sugerirPreco(p.precoCusto, margemDesejada);
+    return {
+      produto: { id: p.id, nome: p.nome },
+      custoAtual: p.precoCusto.toFixed(2),
+      precoVendaAtual: p.precoVenda.toFixed(2),
+      margemAtualPercentual: margemPercentual(p.precoVenda, p.precoVenda.sub(p.precoCusto))?.toFixed(2) ?? null,
+      precoSugerido: s.precoSugerido.toFixed(2),
+      margemDesejadaPercentual: s.margemDesejadaPercentual.toFixed(2),
+      margemResultantePercentual: s.margemResultantePercentual?.toFixed(2) ?? null,
+      markupPercentual: s.markupPercentual?.toFixed(2) ?? null,
+    };
   }
 }

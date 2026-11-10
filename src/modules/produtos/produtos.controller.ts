@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, P
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Perfil } from '@prisma/client';
 import { Perfis } from '../../common/decorators/auth.decorators';
-import { AtualizarProdutoDto, CriarProdutoDto, FiltroProdutosDto } from './dto/produto.dto';
+import { AtualizarProdutoDto, CriarProdutoDto, FiltroProdutosDto, SugestaoPrecoQueryDto } from './dto/produto.dto';
 import { ProdutosService } from './produtos.service';
 
 @ApiTags('produtos')
@@ -25,6 +25,13 @@ export class ProdutosController {
   @Get(':id')
   buscar(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.buscar(id);
+  }
+
+  @Perfis(Perfil.ADMIN)
+  @Get(':id/sugestao-preco')
+  @ApiOperation({ summary: 'Preço de venda para atingir a margem desejada sobre o custo atual' })
+  sugestaoPreco(@Param('id', ParseUUIDPipe) id: string, @Query() q: SugestaoPrecoQueryDto) {
+    return this.service.sugestaoPreco(id, q.margem);
   }
 
   @Perfis(Perfil.ADMIN)

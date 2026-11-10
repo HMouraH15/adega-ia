@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 import { PaginacaoDto } from '../../../common/dto/paginacao.dto';
 
 export class CriarProdutoDto {
@@ -55,4 +55,12 @@ export class FiltroProdutosDto extends PaginacaoDto {
   @Transform(({ value }) => (value === 'false' ? false : value === 'true' ? true : value))
   @IsBoolean()
   ativo?: boolean = true;
+}
+
+export class SugestaoPrecoQueryDto {
+  @ApiProperty({ example: 35, description: 'Margem desejada sobre o preço de venda, em % (0 < m < 100)' })
+  @Type(() => Number)
+  @IsPositive()
+  @Max(99.99)
+  margem: number;
 }
