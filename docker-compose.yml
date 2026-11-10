@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: adega-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: adega
+      POSTGRES_PASSWORD: adega
+      POSTGRES_DB: adega
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adega -d adega"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
