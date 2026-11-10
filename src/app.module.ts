@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ExcecoesFilter } from './common/filters/excecoes.filter';
 import { validarAmbiente } from './config/env.validation';
+import { PrismaModule } from './prisma/prisma.module';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -11,8 +14,10 @@ import { validarAmbiente } from './config/env.validation';
       // (Fora de produção, variáveis do sistema também têm prioridade sobre o .env.)
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
-
+    PrismaModule,
   ],
-  providers: [],
+  providers: [
+    { provide: APP_FILTER, useClass: ExcecoesFilter },
+  ],
 })
 export class AppModule {}

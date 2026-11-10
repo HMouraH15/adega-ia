@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  ADMIN
+  VENDEDOR
+}
+
+enum StatusVenda {
+  CONCLUIDA
+  CANCELADA
+}
+
+model Usuario {
+  id               String     @id @default(uuid())
+  nome             String
+  email            String     @unique
+  senhaHash        String
+  perfil           Perfil     @default(VENDEDOR)
+  criadoEm         DateTime   @default(now())
+  compras          Compra[]
+  vendas           Venda[]    @relation("VendasRegistradas")
+  vendasCanceladas Venda[]    @relation("VendasCanceladas")
+}
+
+model Categoria {
+  id       String    @id @default(uuid())
+  nome     String    @unique
+  produtos Produto[]
+}
+
+model Produto {
+  id            String       @id @default(uuid())
+  nome          String
+  categoriaId   String
+  categoria     Categoria    @relation(fields: [categoriaId], references: [id])
+  /// Custo médio ponderado, recalculado a cada compra
+  precoCusto    Decimal      @db.Decimal(12, 4)
+  precoVenda    Decimal      @db.Decimal(12, 2)
+  estoqueAtual  Int          @default(0)
+  estoqueMinimo Int          @default(0)
+  ativo         Boolean      @default(true)
+  criadoEm      DateTime     @default(now())
+  atualizadoEm  DateTime     @updatedAt
+  compraItens   CompraItem[]
+  vendaItens    VendaItem[]
+
+  @@index([nome])
+}
+
+model Fornecedor {
+  id        String   @id @default(uuid())
+  nome      String
+  documento String?  @unique
+  contato   String?
+  criadoEm  DateTime @default(now())
+  compras   Compra[]
+}
+
+model Compra {
+  id           String       @id @default(uuid())
+  fornecedorId String
+  fornecedor   Fornecedor   @relation(fields: [fornecedorId], references: [id])
+  usuarioId    String
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id])
+  data         DateTime     @default(now())
+  valorTotal   Decimal      @db.Decimal(12, 2)
+  itens        CompraItem[]
+
+  @@index([data])
+}
+
+model CompraItem {
+  id            String  @id @default(uuid())
+  compraId      String
+  compra        Compra  @relation(fields: [compraId], references: [id], onDelete: Cascade)
+  produtoId     String
+  produto       Produto @relation(fields: [produtoId], references: [id])
+  quantidade    Int
+  custoUnitario Decimal @db.Decimal(12, 4)
+}
+
+model Venda {
+  id                 String      @id @default(uuid())
+  usuarioId          String
+  usuario            Usuario     @relation("VendasRegistradas", fields: [usuarioId], references: [id])
+  data               DateTime    @default(now())
+  valorTotal         Decimal     @db.Decimal(12, 2)
+  custoTotal         Decimal     @db.Decimal(12, 2)
+  lucro              Decimal     @db.Decimal(12, 2)
+  /// Vendas canceladas devolvem o estoque e saem dos relatórios
+  status             StatusVenda @default(CONCLUIDA)
+  canceladaEm        DateTime?
+  canceladaPorId     String?
+  canceladaPor       Usuario?    @relation("VendasCanceladas", fields: [canceladaPorId], references: [id])
+  motivoCancelamento String?
+  itens              VendaItem[]
+
+  @@index([status, data])
+}
+
+model VendaItem {
+  id            String  @id @default(uuid())
+  vendaId       String
+  venda         Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produtoId     String
+  produto       Produto @relation(fields: [produtoId], references: [id])
+  quantidade    Int
+  precoUnitario Decimal @db.Decimal(12, 2)
+  /// Custo do produto no momento da venda (snapshot para o cálculo de lucro)
+  custoUnitario Decimal @db.Decimal(12, 4)
+}
+
