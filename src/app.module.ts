@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ExcecoesFilter } from './common/filters/excecoes.filter';
+import { PerfisGuard } from './common/guards/perfis.guard';
 import { validarAmbiente } from './config/env.validation';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { PrismaModule } from './prisma/prisma.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -15,8 +18,12 @@ import { APP_FILTER } from '@nestjs/core';
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     PrismaModule,
+    AuthModule,
   ],
   providers: [
+    // Ordem importa: primeiro autentica (JWT), depois checa o perfil
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PerfisGuard },
     { provide: APP_FILTER, useClass: ExcecoesFilter },
   ],
 })
